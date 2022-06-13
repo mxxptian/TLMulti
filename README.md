@@ -76,8 +76,8 @@ info_LD = 'EUR.hg38' #LD region file for the informative auxiliary population
 tar_LD = 'ASN.hg38' #LD region file for the target population
 
 
-result = PRS_tf(ss_e, ss_a, info_LD, tar_LD, X,PATH_TO_EUR, PATH_TO_REF, PATH_TO_TEST, tar_pheno, sample_r = NULL,
-                   sample_t = NULL){
+result = PRS_tf(ss_e, ss_a, info_LD, tar_LD, Gt, PATH_TO_EUR, PATH_TO_REF, PATH_TO_TEST, pheno_t, sample_r = NULL,
+                   sample_t = NULL, cluster = NULL){
   
   Z = apply(Gt, 2, normalize)
   XTX = t(Z)%*%Z/nrow(Z)
