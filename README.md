@@ -28,29 +28,29 @@ library(mvtnorm)
 library(lassosum)
 library(genio)
 
-G = snp_attach('./HK_impute/HK.chr1-22.impute_QC.rds') # loading the genotype for the target population
-Geur <- snp_attach("ukb_imp/ukbbk.rds") # loading the genotype for the auxiliary informative population 
+G = snp_attach('./HK_impute/HK.chr1-22.impute_QC.rds')
+Geur <- snp_attach("ukb_imp/ukbbk.rds")
 temp = table(Geur$map$rsid)
 temp2 = names(temp)[temp>=2]
 rm(temp)
 
 
 Geur$genotypes = Geur$genotypes[Ne,!(Geur$map$rsid %in% temp2)]
-Geur$map = Geur$map[!(Geur$map$rsid %in% temp2),] # remove the duplicated SNPs
+Geur$map = Geur$map[!(Geur$map$rsid %in% temp2),]
 
-common_snp = intersect(Geur$map$rsid, G$map$marker.ID) # draw the common SNPs between the target population and the auxiliary informative population
+common_snp = intersect(Geur$map$rsid, G$map$marker.ID)
 
 
 map_hk = G$map[(G$map$chromosome %in%chr_asn) & (G$map$marker.ID %in% common_snp),]
 
 
-ga = G$genotypes[,(G$map$chromosome %in%chr_asn) & (G$map$marker.ID %in% common_snp)] # sample the common SNPs for the target population
-ge = Geur$genotypes[,(Geur$map$chromosome%in%chr_eur)& (Geur$map$rsid %in% common_snp)] # sample the common SNPs for the auxiliary informative population
+ga = G$genotypes[,(G$map$chromosome %in%chr_asn) & (G$map$marker.ID %in% common_snp)]
+ge = Geur$genotypes[,(Geur$map$chromosome%in%chr_eur)& (Geur$map$rsid %in% common_snp)]
 
 
-Ge = ge # training data of the auxiliary informative population
-Ga = ga[1:Na,] # training data of the target population
-Gt = ga[(Na+1):(Na+Nt),] # testing data of the target population
+Ge = ge
+Ga = ga[1:Na,]
+Gt = ga[(Na+1):(Na+Nt),]
 
 
 
@@ -64,15 +64,15 @@ sample_t <- rep(FALSE, nrow(G$genotypes)); sample_t[(Na+1):(Na+Nt)] <- TRUE  # s
 
 
 
-pheno = pheno_generation(Ne, Na, Nt, Za, Ze, Zt, 
-                          ratio = 0.01, rho = 0.2, h2 = 0.5) #simulate the corresponding phenotype
+pheno = pheno_generation(Ne, Na, Nt, Za, Ze, Zt,
+                          ratio = 0.01, rho = 0.2, h2 = 0.5)
 
 
-pheno_a <- pheno$pheno_a # phenotype of the training data for the target population
-pheno_e <- pheno$pheno_e # phenotype for the auxiliary informative population
-pheno_t <- pheno$pheno_t # phenotype of the testing data for the target population 
+pheno_a <- pheno$pheno_a
+pheno_e <- pheno$pheno_e
+pheno_t <- pheno$pheno_t
 
-XTX <- t(Zt)%*%Zt/Nt # compute the LD of the target population
+XTX <- t(Zt)%*%Zt/Nt
 snplist <-map$marker.ID
 rownames(XTX) = snplist
 colnames(XTX) = snplist
@@ -80,14 +80,14 @@ snplist =  data.frame(snplist)
 
 ss_e <- big_univLinReg(X = as_FBM(Ze), pheno_e)  # GWAS for EUR
 ss_e <- cbind(map, ss_e)
-names(ss_e) = c("chr", "rsid", "genetic.dist", "bp", "effAllele", "refAllele", 
+names(ss_e) = c("chr", "rsid", "genetic.dist", "bp", "effAllele", "refAllele",
                 "beta", "se", "z")
 ss_e$pvalue = 2*pnorm(-abs(ss_e$z))
 ss_e$n <- Ne
 
 ss_a <- big_univLinReg(X = as_FBM(Za), pheno_a)  # GWAS for ASN
 ss_a <- cbind(map, ss_a)
-names(ss_a) = c("chr", "rsid", "genetic.dist", "bp", "effAllele", "refAllele", 
+names(ss_a) = c("chr", "rsid", "genetic.dist", "bp", "effAllele", "refAllele",
                 "beta", "se", "z")
 ss_a$pvalue = 2*pnorm(-abs(ss_a$z))
 ss_a$n <- Na
@@ -108,59 +108,21 @@ pheno_t_table <- G$fam[sample_t,c(1,2)]
 colnames(pheno_t_table) <- c('FID','IID')
 pheno_t_table$pheno <- pheno_t # FAM for test
 
-tar_pheno = pheno_t_table #generate testing phenotype data
+tar_pheno = pheno_t_table
 
 
-out_e <- lassosum.pipeline(cor=cor_e, 
-                           chr=ss_e$chr, 
-                           pos=ss_e$bp, 
-                           A1=ss_e$effAllele, 
-                           A2=ss_e$refAllele, 
-                           ref.bfile = PATH_TO_DATA, 
-                           test.bfile=PATH_TO_DATA,
-                           #keep.ref = sample_t,
-                           keep.test = sample_t,
-                           LDblocks = info_LD)
+pre = prepare_data(ss_e, ss_a, pheno = tar_pheno, ref.bfile.aux = PATH_TO_DATA, test.bfile.aux =PATH_TO_DATA,
+                        ref.bfile.tar =PATH_TO_DATA,
+                        test.bfile.tar=PATH_TO_DATA, LDblocks.aux = 'EUR.hg38',
+                        LDblocks.tar = 'ASN.hg38', keep.test = sample_t,
+                        keep.ref = NULL)
 
-v_e = validate(out_e, pheno=tar_pheno)
+ss_tl = ss_tl(v_e = pre$validate.aux, out_e = pre$output.aux,
+              ss_a = ss_a, XTX = XTX)
 
-t12 = Sys.time()
+result = PRS_tf(ss_tl, pheno = tar_pheno, ref.bfile = PATH_TO_DATA, test.bfile = PATH_TO_DATA,
+                                LDblocks  = 'ASN.hg38', keep.ref = NULL, keep.test = sample_t)
 
-cor_a <- p2cor(p=ss_a$pvalue, n=ss_a$n, sign=ss_a$beta)
-
-
-out_a <- lassosum.pipeline(cor=cor_a, 
-                           chr=ss_a$chr, 
-                           pos=ss_a$bp, 
-                           A1=ss_a$effAllele, 
-                           A2=ss_a$refAllele, 
-                           ref.bfile=PATH_TO_DATA, 
-                           #keep.ref = sample_t,
-                           keep.test = sample_t,
-                           test.bfile=PATH_TO_DATA, 
-                           LDblocks = tar_LD)
-
-v_a = validate(out_a, pheno=tar_pheno)
-
-
-ss_tl = ss_tl(v_e = v_e, out_e = out_e, ss_a = ss_a, XTX = XTX) # generate the GWAS for TL-Multi
-
-cor_tl <- p2cor(p=ss_tl$pvalue, n=ss_tl$n, sign=ss_tl$beta_tl)
-
-
-out_tl <- lassosum.pipeline(cor=cor_tl, 
-                            chr=ss_tl$chr, 
-                            pos=ss_tl$bp, 
-                            A1=ss_tl$effAllele, 
-                            A2=ss_tl$refAllele, 
-                            ref.bfile=PATH_TO_DATA, 
-                            test.bfile=PATH_TO_DATA, 
-                            keep.test = sample_t,
-                            LDblocks = 'ASN.hg38')
-
-
-
-v_tl = validate(out_tl, pheno=tar_pheno)
 
 
 
