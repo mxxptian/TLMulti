@@ -128,5 +128,4 @@ result = PRS_tf(ss_tl, pheno = tar_pheno, ref.bfile = PATH_TO_DATA, test.bfile =
 
 ```
 # Citation
-Tian, P., Chan, T. H., Wang, Y.-F., Yang, W., Yin, G., and Zhang, Y. D. (2022). Multiethnic polygenic risk prediction in diverse populations through transfer learning. Frontiers in
-Genetics, 13.
+Tian, P., Chan, T. H., Wang, Y.-F., Yang, W., Yin, G., and Zhang, Y. D. (2022). [Multiethnic polygenic risk prediction in diverse populations through transfer learning.](http://journal.frontiersin.org/article/10.3389/fgene.2022.906965/full?&utm_source=Email_to_authors_&utm_medium=Email&utm_content=T1_11.5e1_author&utm_campaign=Email_publication&field=&journalName=Frontiers_in_Genetics&id=906965) Frontiers in Genetics, 13.
