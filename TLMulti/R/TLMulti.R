@@ -117,10 +117,10 @@ prepare_data = function(ss_e, ss_a,pheno, ref.bfile.aux, test.bfile.aux,
                              pos=ss_a$bp,
                              A1=ss_a$effAllele,
                              A2=ss_a$refAllele,
-                             ref.bfile=PATH_TO_DATA,
+                             ref.bfile=ref.bfile.tar,
                              #keep.ref = sample_t,
                              keep.test = sample_t,
-                             test.bfile=PATH_TO_DATA,
+                             test.bfile=test.bfile.tar,
                              LDblocks = tar_LD)
   v_a = validate(out_a, pheno=tar_pheno)
 
