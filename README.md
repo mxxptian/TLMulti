@@ -18,6 +18,12 @@ install.packages(c('lassosum', 'mvtnorm'), dependencies=TRUE)
 ``` r
 devtools::install_github("mxxptian/TLMulti")
 ```
+Or you can also install by the source file:
+
+``` r
+install.packages("path/TLMulti_0.1.0.tar.gz", repos=NULL)
+```
+
 
 # Example
 
