@@ -33,13 +33,13 @@ pheno_generation <- function(Ne, Na, Nt, Za, Ze, Zt, ratio, rho, h2){
   beta_a <- rep(0, M)  # coef for asian
 
 
-  b <- rmvnorm(m, sigma = matrix(data = h2/m*c(1, rho, rho, 1), nrow = 2))
+  b <- mvtnorm::rmvnorm(m, sigma = matrix(data = h2/m*c(1, rho, rho, 1), nrow = 2))
   beta_e[set] <- b[,1]
   beta_a[set] <- b[,2]
 
-  pheno_e <- as.vector(Ze%*%beta_e+rnorm(Ne, 0, sqrt(1-h2)))  # phenotype for european
-  pheno_a <- as.vector(Za%*%beta_a+rnorm(Na, 0, sqrt(1-h2)))  # phenotype for asian
-  pheno_t <- as.vector(Zt%*%beta_a+rnorm(Nt, 0, sqrt(1-h2)))  # phenotype for test
+  pheno_e <- as.vector(Ze%*%beta_e+stats::rnorm(Ne, 0, sqrt(1-h2)))  # phenotype for european
+  pheno_a <- as.vector(Za%*%beta_a+stats::rnorm(Na, 0, sqrt(1-h2)))  # phenotype for asian
+  pheno_t <- as.vector(Zt%*%beta_a+stats::rnorm(Nt, 0, sqrt(1-h2)))  # phenotype for test
 
   return(list(pheno_a=pheno_a, pheno_e=pheno_e, pheno_t=pheno_t))
 }
@@ -56,6 +56,7 @@ pheno_generation <- function(Ne, Na, Nt, Za, Ze, Zt, ratio, rho, h2){
 #'   population
 #' @param test.bfile.aux The testing panel for the informative auxiliary
 #'   population
+#' @param sample_t the test samples from data
 #' @param ref.bfile.tar The reference panel for the target population
 #' @param test.bfile.tar The testing panel for the target population
 #' @param LDblocks.aux The LD block for the informative auxiliary population
@@ -65,11 +66,11 @@ pheno_generation <- function(Ne, Na, Nt, Za, Ze, Zt, ratio, rho, h2){
 #'
 
 prepare_data = function(ss_e, ss_a,pheno, ref.bfile.aux, test.bfile.aux,
-                        ref.bfile.tar,
+                        ref.bfile.tar, sample_t,
                         test.bfile.tar, LDblocks.aux,
                         LDblocks.tar, keep.test = NULL,
                         keep.ref = NULL){
-  cor_e <- p2cor(p=ss_e$pvalue, n=ss_e$n, sign=ss_e$beta)
+  cor_e <- lassosum::p2cor(p=ss_e$pvalue, n=ss_e$n, sign=ss_e$beta)
 
   adj = which(is.na(cor_e))
   if(length(adj)!=0){
@@ -79,7 +80,7 @@ prepare_data = function(ss_e, ss_a,pheno, ref.bfile.aux, test.bfile.aux,
 
 
 
-  out_e <- lassosum.pipeline(cor=cor_e,
+  out_e <- lassosum::lassosum.pipeline(cor=cor_e,
                              chr=ss_e$chr,
                              pos=ss_e$bp,
                              A1=ss_e$effAllele,
@@ -90,21 +91,12 @@ prepare_data = function(ss_e, ss_a,pheno, ref.bfile.aux, test.bfile.aux,
                              keep.test = keep.test,
                              LDblocks = LDblocks.aux)
 
-  v_e = validate(out_e, pheno=tar_pheno)
-
-  # delete the temp files
-  # tmp_dir = tempdir()
-  # file_name = list.files(tmp_dir)
-  #
-  # if(length(file_name[grep('.bk', file_name)])>=1){
-  #   file.remove(paste0(tmp_dir,'/', file_name[grep('.bk', file_name)]))
-  #
-  # }
+  v_e = lassosum::validate(out_e, pheno = pheno)
 
 
 
 
-  cor_a <- p2cor(p=ss_a$pvalue, n=ss_a$n, sign=ss_a$beta)
+  cor_a <- lassosum::p2cor(p=ss_a$pvalue, n=ss_a$n, sign=ss_a$beta)
 
   adj = which(is.na(cor_a))
   if(length(adj)!=0){
@@ -112,17 +104,17 @@ prepare_data = function(ss_e, ss_a,pheno, ref.bfile.aux, test.bfile.aux,
   }
 
 
-  out_a <- lassosum.pipeline(cor=cor_a,
+  out_a <- lassosum::lassosum.pipeline(cor=cor_a,
                              chr=ss_a$chr,
                              pos=ss_a$bp,
                              A1=ss_a$effAllele,
                              A2=ss_a$refAllele,
-                             ref.bfile=ref.bfile.tar,
+                             ref.bfile = ref.bfile.tar,
                              #keep.ref = sample_t,
                              keep.test = sample_t,
-                             test.bfile=test.bfile.tar,
-                             LDblocks = tar_LD)
-  v_a = validate(out_a, pheno=tar_pheno)
+                             test.bfile = test.bfile.tar,
+                             LDblocks = LDblocks.tar)
+  v_a = lassosum::validate(out_a, pheno = pheno)
 
   return(list(validate.aux = v_e, validate.tar = v_a, output.aux = out_e,
               output.tar = out_a))
@@ -144,7 +136,7 @@ prepare_data = function(ss_e, ss_a,pheno, ref.bfile.aux, test.bfile.aux,
 PRS_tf = function(ss_tl, pheno, ref.bfile, test.bfile, LDblocks, keep.test = NULL,
                   keep.ref = NULL){
 
-  cor_tl <- p2cor(p=ss_tl$pvalue, n=ss_tl$n, sign=ss_tl$beta_tl)
+  cor_tl <- lassosum::p2cor(p=ss_tl$pvalue, n=ss_tl$n, sign=ss_tl$beta_tl)
 
 
 
@@ -156,7 +148,7 @@ PRS_tf = function(ss_tl, pheno, ref.bfile, test.bfile, LDblocks, keep.test = NUL
 
 
 
-  out_tl <- lassosum.pipeline(cor=cor_tl,
+  out_tl <- lassosum::lassosum.pipeline(cor=cor_tl,
                               chr=ss_tl$chr,
                               pos=ss_tl$bp,
                               A1=ss_tl$effAllele,
@@ -169,7 +161,7 @@ PRS_tf = function(ss_tl, pheno, ref.bfile, test.bfile, LDblocks, keep.test = NUL
 
 
 
-  v_tl = validate(out_tl, pheno=tar_pheno)
+  v_tl = lassosum::validate(out_tl, pheno=pheno)
 
   return(list(PRS = v_tl$best.pgs, best.beta = v_tl$best.beta))
 }
@@ -184,13 +176,14 @@ PRS_tf = function(ss_tl, pheno, ref.bfile, test.bfile, LDblocks, keep.test = NUL
 #' @param out_e The Lassosum result of the auxiliary informative population
 #' @param ss_a The GWAS data for the target population
 #' @param XTX The LD region of the target population
+#' @param snp_list the rsid list of target population with colname 'snplist'
 #' @return A list of multiethnic PRS calculated by TL-Multi.
 #'
 #'
 #'
 
 
-ss_tl <- function(v_e, out_e, ss_a, XTX = XTX){
+ss_tl <- function(v_e, out_e, ss_a, snp_list, XTX = XTX){
 
 
   beta_eur = v_e$best.beta # best beta from validation
@@ -212,12 +205,12 @@ ss_tl <- function(v_e, out_e, ss_a, XTX = XTX){
                           out_e$sumstats$chr)
   colnames(best_beta) <- c('beta_e', 'bp', 'chr')
 
-  ss_tl <-  merge(df_tl, snplist, by.x="rsid", by.y="snplist", sort=F)
+  ss_tl <-  merge(df_tl, snp_list, by.x="rsid", by.y="snplist", sort=F)
   ZTZ <-  XTX[ss_tl$rsid, ss_tl$rsid]
 
   ss_tl$beta_tl <-  ss_tl$beta_a - as.vector(ss_tl$beta_e %*% ZTZ)
   ss_tl$z <-  ss_tl$beta_tl / ss_tl$se
-  ss_tl$pvalue <-  2 * pnorm(-abs(ss_tl$z))
+  ss_tl$pvalue <-  2 * stats::pnorm(-abs(ss_tl$z))
 
 
 

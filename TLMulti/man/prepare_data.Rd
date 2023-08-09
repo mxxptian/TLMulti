@@ -11,6 +11,7 @@ prepare_data(
   ref.bfile.aux,
   test.bfile.aux,
   ref.bfile.tar,
+  sample_t,
   test.bfile.tar,
   LDblocks.aux,
   LDblocks.tar,
@@ -32,6 +33,8 @@ population}
 population}
 
 \item{ref.bfile.tar}{The reference panel for the target population}
+
+\item{sample_t}{the test samples from data}
 
 \item{test.bfile.tar}{The testing panel for the target population}
 

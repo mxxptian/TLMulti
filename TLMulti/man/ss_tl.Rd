@@ -4,7 +4,7 @@
 \alias{ss_tl}
 \title{ss_tl}
 \usage{
-ss_tl(v_e, out_e, ss_a, XTX = XTX)
+ss_tl(v_e, out_e, ss_a, snp_list, XTX = XTX)
 }
 \arguments{
 \item{v_e}{The validation result of Lassosum for the auxiliary informative
@@ -13,6 +13,8 @@ population}
 \item{out_e}{The Lassosum result of the auxiliary informative population}
 
 \item{ss_a}{The GWAS data for the target population}
+
+\item{snp_list}{the rsid list of target population with colname 'snplist'}
 
 \item{XTX}{The LD region of the target population}
 }
