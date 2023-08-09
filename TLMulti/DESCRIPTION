@@ -9,7 +9,7 @@ Description: This R package supports TL-Multi. TL-Multi commonly performs PRS pr
 License: GPL
 Encoding: UTF-8
 LazyData: true
-Imports: lassosum, mvtnorm, stats
+Imports: lassosum, stats
 RoxygenNote: 7.2.3
 NeedsCompilation: no
-Packaged: 2023-08-09 15:19:09 UTC; r9user2
+Packaged: 2023-08-09 15:32:40 UTC; r9user2
