@@ -11,7 +11,7 @@ the `remotes` package would work as well.
 
 Before installation of TL-Multi, you are also requested the below packages:
 ``` r
-install.packages(c('bigsnpr', 'bigstatsr', 'lassosum', 'data.table', 'parallel', 'dplyr', 'mvtnorm'), dependencies=TRUE)
+install.packages(c('bigsnpr', 'bigstatsr', 'lassosum', 'data.table', 'parallel', 'dplyr', 'mvtnorm', 'SimDesign'), dependencies=TRUE)
 
 ```
 
