@@ -11,7 +11,7 @@ the `remotes` package would work as well.
 
 Before installation of TL-Multi, you are also requested the below packages:
 ``` r
-install.packages(c('bigsnpr', 'bigstatsr', 'lassosum', 'data.table', 'parallel', 'dplyr', 'mvtnorm', 'SimDesign'), dependencies=TRUE)
+install.packages(c('lassosum', 'mvtnorm'), dependencies=TRUE)
 
 ```
 
@@ -22,6 +22,30 @@ devtools::install_github("mxxptian/TLMulti")
 # Example
 
 ``` r
+#define a function to simulate phenotype
+
+pheno_generation <- function(Ne, Na, Nt, Za, Ze, Zt, ratio, rho, h2){
+
+  M <- dim(Za)[2]  # number of SNPs
+  m <- ceiling(M*ratio)  # number of causal SNPs
+
+  set <- sample(1:M, m)  # index for causal SNPs
+
+  beta_e <- rep(0, M)  # coef for european
+  beta_a <- rep(0, M)  # coef for asian
+
+
+  b <- rmvnorm(m, sigma = matrix(data = h2/m*c(1, rho, rho, 1), nrow = 2))
+  beta_e[set] <- b[,1]
+  beta_a[set] <- b[,2]
+
+  pheno_e <- as.vector(Ze%*%beta_e+rnorm(Ne, 0, sqrt(1-h2)))  # phenotype for european
+  pheno_a <- as.vector(Za%*%beta_a+rnorm(Na, 0, sqrt(1-h2)))  # phenotype for asian
+  pheno_t <- as.vector(Zt%*%beta_a+rnorm(Nt, 0, sqrt(1-h2)))  # phenotype for test
+
+  return(list(pheno_a=pheno_a, pheno_e=pheno_e, pheno_t=pheno_t))
+}
+
 
 library(bigsnpr)
 library(mvtnorm)
