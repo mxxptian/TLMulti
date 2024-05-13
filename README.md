@@ -58,6 +58,12 @@ library(mvtnorm)
 library(lassosum)
 library(genio)
 
+
+Ne = 10000
+Na = 2800
+Nt = 1249
+
+
 G = snp_attach('./HK_impute/HK.chr1-22.impute_QC.rds')
 Geur <- snp_attach("ukb_imp/ukbbk.rds")
 temp = table(Geur$map$rsid)
