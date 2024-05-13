@@ -142,12 +142,12 @@ tar_pheno = pheno_t_table
 
 
 pre = prepare_data(ss_e, ss_a, pheno = tar_pheno, ref.bfile.aux = PATH_TO_DATA, test.bfile.aux =PATH_TO_DATA,
-                        ref.bfile.tar =PATH_TO_DATA,
+                        ref.bfile.tar =PATH_TO_DATA, sample_t,
                         test.bfile.tar=PATH_TO_DATA, LDblocks.aux = 'EUR.hg38',
                         LDblocks.tar = 'ASN.hg38', keep.test = sample_t,
                         keep.ref = NULL)
 
-ss_tl = ss_tl(v_e = pre$validate.aux, out_e = pre$output.aux,
+ss_tl = ss_tl(v_e = pre$validate.aux, out_e = pre$output.aux, snplist,
               ss_a = ss_a, XTX = XTX)
 
 result = PRS_tf(ss_tl, pheno = tar_pheno, ref.bfile = PATH_TO_DATA, test.bfile = PATH_TO_DATA,
